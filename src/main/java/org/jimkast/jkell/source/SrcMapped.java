@@ -1,6 +1,6 @@
 package org.jimkast.jkell.source;
 
-import org.jimkast.jkell.func.FuncMapped;
+import org.jimkast.jkell.func.FnMapped;
 import org.jimkast.jkell.types.Func;
 import org.jimkast.jkell.types.Source;
 
@@ -15,6 +15,6 @@ public final class SrcMapped<A, B> implements Source<B> {
 
     @Override
     public <X> X feed(Func<B, X> target, X other) throws Exception {
-        return origin.feed(new FuncMapped<>(mapper, target), other);
+        return origin.feed(new FnMapped<>(mapper, target), other);
     }
 }

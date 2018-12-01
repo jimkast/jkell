@@ -3,17 +3,17 @@ package org.jimkast.jkell.func;
 import org.jimkast.jkell.types.BiFunc;
 import org.jimkast.jkell.types.Func;
 
-public final class FuncBiReduced2<X, Y, Z> implements Func<X, Z> {
+public final class FnCurried1<X, Y, Z> implements Func<Y, Z> {
     private final BiFunc<X, Y, Z> bi;
-    private final Y y;
+    private final X x;
 
-    public FuncBiReduced2(BiFunc<X, Y, Z> bi, Y y) {
+    public FnCurried1(BiFunc<X, Y, Z> bi, X x) {
         this.bi = bi;
-        this.y = y;
+        this.x = x;
     }
 
     @Override
-    public Z apply(X x) throws Exception {
+    public Z apply(Y y) throws Exception {
         return bi.apply(x, y);
     }
 }

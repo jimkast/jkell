@@ -14,7 +14,7 @@ public final class FnCase<X, Y> implements Func<X, Source<Y>> {
     }
 
     public FnCase(Func<X, Boolean> check, Func<X, Y> result) {
-        this(true, check, new FuncMapped<>(result, SrcFixed::new));
+        this(true, check, new FnMapped<>(result, SrcFixed::new));
     }
 
     private FnCase(boolean b, Func<X, Boolean> check, Func<X, Source<Y>> result) {
