@@ -5,7 +5,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import net.sf.saxon.s9api.XdmValue;
+import org.jimkast.jkell.func.FnCurried1;
+import org.jimkast.jkell.func.FnCurried2;
+import org.jimkast.jkell.target.TrgCurry2;
 import org.jimkast.jkell.types.Func;
 import org.jimkast.jkell.types.Target;
 
@@ -23,24 +27,22 @@ public final class Example {
             .bi((i, result) -> i + ": " + result)
             .reduce(System.out::println);
 
-
         Func<InputStream, Target<OutputStream>> exchange = Composer
             .<InputStream, Reader>wrap(InputStreamReader::new)
             .map(BufferedReader::new)
             .map(BufferedReader::readLine)
-            .fork(s -> s.equals("ytsupport"), XdmValue.makeValue("SUPERADMIN"))
-            .fork(s -> s.startsWith("bo"), s -> XdmValue.makeValue("BOUSER:" + Math.random()))
-            .fork(s -> s.startsWith("ag"), s -> XdmValue.makeValue("AGENT:" + Math.random()))
+            .fork("bo"::equals, XdmValue.makeValue("SUPERADMIN"))
+            .fork(new FnCurried1<>("bo", String::startsWith), s -> XdmValue.makeValue("BOUSER:" + s))
+            .fork(new FnCurried1<>("ag", String::startsWith), s -> XdmValue.makeValue("AGENT:" + s))
             .map(XdmValue::toString)
             .orelse("Unknown agent!!!")
-            .map(String::getBytes)
-            .map(bytes -> out -> out.write(bytes));
+            .map(new FnCurried2<>(StandardCharsets.UTF_8, String::getBytes))
+            .map(new TrgCurry2<>(OutputStream::write));
 
 
         for (int i = 0; i < 30; i++) {
             trg.accept(i);
         }
-
 
         exchange.apply(System.in).accept(System.out);
     }

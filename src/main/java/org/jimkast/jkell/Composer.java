@@ -65,7 +65,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
         }
 
         public <Z> PsComposer<A, X, Z> map(Func<Y, Z> next) {
-            return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
+            return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(next, SrcMapped::new)));
         }
 
 //        public PsComposer<X, Y> reduce(Func<Y, Y> reducer) {
