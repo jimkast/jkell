@@ -37,19 +37,15 @@ public final class Composer<X, Y> implements Func<X, Y> {
         return x -> next.accept(x, origin.apply(x));
     }
 
-    public <Z> PsComposer<X, Z> possible(Func<Y, Source<Z>> next) {
-        return new PsComposer<>(new FnMapped<>(origin, next));
+    public <Z> PsComposer<X, Y, Z> fork(Func<Y, Source<Z>> next) {
+        return new PsComposer<>(origin, next);
     }
 
-    public <Z> PsComposer<X, Z> fork(Func<Y, Source<Z>> next) {
-        return new PsComposer<>(new FnMapped<>(origin, next));
-    }
-
-    public <Z> PsComposer<X, Z> fork(Func<Y, Boolean> check, Func<Y, Z> result) {
+    public <Z> PsComposer<X, Y, Z> fork(Func<Y, Boolean> check, Func<Y, Z> result) {
         return fork(new FnCase<>(check, result));
     }
 
-    public <Z> PsComposer<X, Z> fork(Func<Y, Boolean> check, Z result) {
+    public <Z> PsComposer<X, Y, Z> fork(Func<Y, Boolean> check, Z result) {
         return fork(new FnCase<>(check, result));
     }
 
@@ -59,16 +55,17 @@ public final class Composer<X, Y> implements Func<X, Y> {
     }
 
 
-    public static final class PsComposer<X, Y> implements Func<X, Source<Y>> {
+    public static final class PsComposer<A, X, Y> implements Func<X, Source<Y>> {
+        private final Func<A, X> before;
         private final Func<X, Source<Y>> origin;
 
-        public PsComposer(Func<X, Source<Y>> origin) {
+        public PsComposer(Func<A, X> before, Func<X, Source<Y>> origin) {
+            this.before = before;
             this.origin = origin;
         }
 
-
-        public <Z> PsComposer<X, Z> map(Func<Y, Z> next) {
-            return new PsComposer<>(new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
+        public <Z> PsComposer<A, X, Z> map(Func<Y, Z> next) {
+            return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
         }
 
 //        public PsComposer<X, Y> reduce(Func<Y, Y> reducer) {
@@ -83,21 +80,21 @@ public final class Composer<X, Y> implements Func<X, Y> {
 //            );
 //        }
 
-        public Composer<X, Y> orelse(Y other) {
+        public Composer<A, Y> orelse(Y other) {
             return new Composer<>(
-                x -> origin.apply(x).feed(FnSelf.instance(), other)
+                x -> origin.apply(before.apply(x)).feed(FnSelf.instance(), other)
             );
         }
 
-        public PsComposer<X, Y> fork(Func<X, Source<Y>> next) {
-            return new PsComposer<>(new FnBoth<>(origin, next, SrcFallback::new));
+        public PsComposer<A, X, Y> fork(Func<X, Source<Y>> next) {
+            return new PsComposer<>(before, new FnBoth<>(origin, next, SrcFallback::new));
         }
 
-        public PsComposer<X, Y> fork(Func<X, Boolean> check, Func<X, Y> result) {
+        public PsComposer<A, X, Y> fork(Func<X, Boolean> check, Func<X, Y> result) {
             return fork(new FnCase<>(check, result));
         }
 
-        public PsComposer<X, Y> fork(Func<X, Boolean> check, Y result) {
+        public PsComposer<A, X, Y> fork(Func<X, Boolean> check, Y result) {
             return fork(new FnCase<>(check, result));
         }
 
@@ -112,7 +109,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
         return new Composer<>(start);
     }
 
-    public static <X, Y> PsComposer<X, Y> maybe(Func<X, Source<Y>> start) {
-        return new PsComposer<>(start);
+    public static <X, Y> PsComposer<X, X, Y> maybe(Func<X, Source<Y>> start) {
+        return new PsComposer<>(FnSelf.instance(), start);
     }
 }
