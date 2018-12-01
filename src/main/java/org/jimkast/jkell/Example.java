@@ -15,8 +15,8 @@ public final class Example {
 //        Exec app =
         Target<Integer> trg = Composer
             .<Integer, Integer>wrap(i -> i * 3)
-            .and(i -> i + 1)
-            .and(i -> i * 2)
+            .map(i -> i + 1)
+            .map(i -> i * 2)
             .fork(i -> i < 30, 30)
             .fork(i -> i < 50, 50)
             .orelse(100)
@@ -26,15 +26,15 @@ public final class Example {
 
         Func<InputStream, Target<OutputStream>> exchange = Composer
             .<InputStream, Reader>wrap(InputStreamReader::new)
-            .and(BufferedReader::new)
-            .and(BufferedReader::readLine)
+            .map(BufferedReader::new)
+            .map(BufferedReader::readLine)
             .fork(s -> s.equals("ytsupport"), XdmValue.makeValue("SUPERADMIN"))
             .fork(s -> s.startsWith("bo"), s -> XdmValue.makeValue("BOUSER:" + Math.random()))
             .fork(s -> s.startsWith("ag"), s -> XdmValue.makeValue("AGENT:" + Math.random()))
             .map(XdmValue::toString)
+            .orelse("Unknown agent!!!")
             .map(String::getBytes)
-            .<Target<OutputStream>>map(bytes -> out -> out.write(bytes))
-            .orelse(out -> out.write("Unknown agent!!!".getBytes()));
+            .map(bytes -> out -> out.write(bytes));
 
 
         for (int i = 0; i < 30; i++) {

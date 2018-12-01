@@ -21,7 +21,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
         this.origin = origin;
     }
 
-    public <Z> Composer<X, Z> and(Func<Y, Z> next) {
+    public <Z> Composer<X, Z> map(Func<Y, Z> next) {
         return new Composer<>(new FnMapped<>(origin, next));
     }
 
