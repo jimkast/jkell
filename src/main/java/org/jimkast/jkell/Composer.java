@@ -33,6 +33,10 @@ public final class Composer<X, Y> implements Func<X, Y> {
         return x -> next.accept(origin.apply(x));
     }
 
+    public Target<X> reduce2(Target<Y> next) {
+        return x -> next.accept(origin.apply(x));
+    }
+
     public Target<X> reduce2(BiTarget<X, Y> next) {
         return x -> next.accept(x, origin.apply(x));
     }
@@ -65,7 +69,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
         }
 
         public <Z> PsComposer<A, X, Z> map(Func<Y, Z> next) {
-            return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(next, SrcMapped::new)));
+            return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
         }
 
 //        public PsComposer<X, Y> reduce(Func<Y, Y> reducer) {

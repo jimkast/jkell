@@ -7,7 +7,7 @@ public final class FnCurried2<X, Y, Z> implements Func<X, Z> {
     private final BiFunc<X, Y, Z> bi;
     private final Y y;
 
-    public FnCurried2(Y y, BiFunc<X, Y, Z> bi) {
+    public FnCurried2(BiFunc<X, Y, Z> bi, Y y) {
         this.bi = bi;
         this.y = y;
     }

@@ -12,6 +12,6 @@ public final class FnCurry1<X, Y, Z> implements Func<X, Func<Y, Z>> {
 
     @Override
     public Func<Y, Z> apply(X x) throws Exception {
-        return new FnCurried1<>(x, bi);
+        return new FnCurried1<>(bi, x);
     }
 }

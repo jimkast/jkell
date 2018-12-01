@@ -32,13 +32,12 @@ public final class Example {
             .map(BufferedReader::new)
             .map(BufferedReader::readLine)
             .fork("bo"::equals, XdmValue.makeValue("SUPERADMIN"))
-            .fork(new FnCurried1<>("bo", String::startsWith), s -> XdmValue.makeValue("BOUSER:" + s))
-            .fork(new FnCurried1<>("ag", String::startsWith), s -> XdmValue.makeValue("AGENT:" + s))
+            .fork(new FnCurried1<>(String::startsWith, "bo"), s -> XdmValue.makeValue("BOUSER:" + s))
+            .fork(new FnCurried1<>(String::startsWith, "ag"), s -> XdmValue.makeValue("AGENT:" + s))
             .map(XdmValue::toString)
             .orelse("Unknown agent!!!")
-            .map(new FnCurried2<>(StandardCharsets.UTF_8, String::getBytes))
+            .map(new FnCurried2<>(String::getBytes, StandardCharsets.UTF_8))
             .map(new TrgCurry2<>(OutputStream::write));
-
 
         for (int i = 0; i < 30; i++) {
             trg.accept(i);
