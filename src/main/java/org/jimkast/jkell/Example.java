@@ -11,6 +11,7 @@ import org.jimkast.jkell.func.FnCurried1;
 import org.jimkast.jkell.func.FnCurried2;
 import org.jimkast.jkell.target.TrgCurry2;
 import org.jimkast.jkell.types.Func;
+import org.jimkast.jkell.types.Source;
 import org.jimkast.jkell.types.Target;
 
 public final class Example {
@@ -26,6 +27,8 @@ public final class Example {
             .orelse(100)
             .bi((i, result) -> i + ": " + result)
             .reduce(System.out::println);
+
+        Func<String, Source<Integer>> bookings = s -> null;
 
         Func<InputStream, Target<OutputStream>> exchange = Composer
             .<InputStream, Reader>wrap(InputStreamReader::new)
