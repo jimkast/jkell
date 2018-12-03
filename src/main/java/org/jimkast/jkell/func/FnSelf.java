@@ -12,6 +12,6 @@ public final class FnSelf<T> implements Func<T, T> {
 
     @SuppressWarnings("unchecked")
     public static <X> Func<X, X> instance() {
-        return (Func<X, X>) INSTANCE;
+        return INSTANCE;
     }
 }

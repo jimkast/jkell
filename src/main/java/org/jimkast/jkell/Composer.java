@@ -3,6 +3,7 @@ package org.jimkast.jkell;
 import org.jimkast.jkell.func.FnBoth;
 import org.jimkast.jkell.func.FnCase;
 import org.jimkast.jkell.func.FnCurried1;
+import org.jimkast.jkell.func.FnFixed;
 import org.jimkast.jkell.func.FnMapped;
 import org.jimkast.jkell.func.FnOrElse;
 import org.jimkast.jkell.func.FnReduced;
@@ -24,7 +25,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
         this.origin = origin;
     }
 
-    public <Z> Composer<X, Z> map(Func<Y, Z> next) {
+    public <Z> Composer<X, Z> pipe(Func<Y, Z> next) {
         return new Composer<>(new FnMapped<>(origin, next));
     }
 
@@ -71,11 +72,11 @@ public final class Composer<X, Y> implements Func<X, Y> {
             this.origin = origin;
         }
 
-        public <Z> PsComposer<A, X, Z> map(Func<Y, Z> next) {
+        public <Z> PsComposer<A, X, Z> pipe(Func<Y, Z> next) {
             return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
         }
 
-        public <Z> PsComposer<A, X, Z> mapNested(Func<Y, Source<Z>> next) {
+        public <Z> PsComposer<A, X, Z> pipeNested(Func<Y, Source<Z>> next) {
             return new PsComposer<>(before, new FnMapped<>(origin, src -> src.feed(next, SrcEmpty.instance())));
         }
 
@@ -90,8 +91,12 @@ public final class Composer<X, Y> implements Func<X, Y> {
             return a -> fn.apply(a).accept(target);
         }
 
-        public Composer<A, Y> orelse(Y other) {
+        public Composer<A, Y> orelse(Func<A, Y> other) {
             return new Composer<>(new FnOrElse<>(other, this));
+        }
+
+        public Composer<A, Y> orelse(Y other) {
+            return orelse(new FnFixed<>(other));
         }
 
         public PsComposer<A, X, Y> fork(Func<X, Source<Y>> next) {
@@ -120,5 +125,13 @@ public final class Composer<X, Y> implements Func<X, Y> {
 
     public static <X, Y> PsComposer<X, X, Y> maybe(Func<X, Source<Y>> start) {
         return new PsComposer<>(FnSelf.instance(), start);
+    }
+
+    public static <X, Y, Z> Composer<Y, Z> curry1(BiFunc<X, Y, Z> bi, X x) {
+        return new Composer<>(y -> bi.apply(x, y));
+    }
+
+    public static <X, Y, Z> Composer<X, Z> curry2(BiFunc<X, Y, Z> bi, Y y) {
+        return new Composer<>(x -> bi.apply(x, y));
     }
 }

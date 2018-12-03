@@ -13,6 +13,6 @@ public final class SrcEmpty<T> implements Source<T> {
 
     @SuppressWarnings("unchecked")
     public static <T> Source<T> instance() {
-        return (Source<T>) INSTANCE;
+        return INSTANCE;
     }
 }
