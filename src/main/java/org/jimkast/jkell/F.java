@@ -18,19 +18,19 @@ import org.jimkast.jkell.types.Func;
 import org.jimkast.jkell.types.Source;
 import org.jimkast.jkell.types.Target;
 
-public final class Composer<X, Y> implements Func<X, Y> {
+public final class F<X, Y> implements Func<X, Y> {
     private final Func<X, Y> origin;
 
-    public Composer(Func<X, Y> origin) {
+    public F(Func<X, Y> origin) {
         this.origin = origin;
     }
 
-    public <Z> Composer<X, Z> pipe(Func<Y, Z> next) {
-        return new Composer<>(new FnMapped<>(origin, next));
+    public <Z> F<X, Z> then(Func<Y, Z> next) {
+        return new F<>(new FnMapped<>(origin, next));
     }
 
-    public <Z> Composer<X, Z> bi(BiFunc<X, Y, Z> next) {
-        return new Composer<>(new FnReduced<>(origin, next));
+    public <Z> F<X, Z> bi(BiFunc<X, Y, Z> next) {
+        return new F<>(new FnReduced<>(origin, next));
     }
 
     public Target<X> reduce(Target<Y> next) {
@@ -72,7 +72,7 @@ public final class Composer<X, Y> implements Func<X, Y> {
             this.origin = origin;
         }
 
-        public <Z> PsComposer<A, X, Z> pipe(Func<Y, Z> next) {
+        public <Z> PsComposer<A, X, Z> then(Func<Y, Z> next) {
             return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
         }
 
@@ -91,11 +91,11 @@ public final class Composer<X, Y> implements Func<X, Y> {
             return a -> fn.apply(a).accept(target);
         }
 
-        public Composer<A, Y> orelse(Func<A, Y> other) {
-            return new Composer<>(new FnOrElse<>(other, this));
+        public F<A, Y> orelse(Func<A, Y> other) {
+            return new F<>(new FnOrElse<>(other, this));
         }
 
-        public Composer<A, Y> orelse(Y other) {
+        public F<A, Y> orelse(Y other) {
             return orelse(new FnFixed<>(other));
         }
 
@@ -119,19 +119,62 @@ public final class Composer<X, Y> implements Func<X, Y> {
     }
 
 
-    public static <X, Y> Composer<X, Y> wrap(Func<X, Y> start) {
-        return new Composer<>(start);
+    public static <X, Y> F<X, Y> wrap(Func<X, Y> start) {
+        return new F<>(start);
+    }
+
+    public static <X, Y> PsComposer<X, X, Y> ifelse(Func<X, Boolean> check, Y result) {
+        return new PsComposer<>(FnSelf.instance(), new FnCase<>(check, result));
+    }
+
+    public static <X, Y> PsComposer<X, X, Y> ifelse(Func<X, Boolean> check, Func<X, Y> result) {
+        return new PsComposer<>(FnSelf.instance(), new FnCase<>(check, result));
     }
 
     public static <X, Y> PsComposer<X, X, Y> maybe(Func<X, Source<Y>> start) {
         return new PsComposer<>(FnSelf.instance(), start);
     }
 
-    public static <X, Y, Z> Composer<Y, Z> curry1(BiFunc<X, Y, Z> bi, X x) {
-        return new Composer<>(y -> bi.apply(x, y));
+    public static <X, Y, Z> F<Y, Func<X, Z>> curried1(BiFunc<X, Y, Z> bi) {
+        return new F<>(y -> x -> bi.apply(x, y));
     }
 
-    public static <X, Y, Z> Composer<X, Z> curry2(BiFunc<X, Y, Z> bi, Y y) {
-        return new Composer<>(x -> bi.apply(x, y));
+    public static <X, Y, Z> F<X, Func<Y, Z>> curried2(BiFunc<X, Y, Z> bi) {
+        return new F<>(x -> y -> bi.apply(x, y));
+    }
+
+    public static <X, Y, Z> F<Y, Z> curry1(BiFunc<X, Y, Z> bi, X x) {
+        return new F<>(y -> bi.apply(x, y));
+    }
+
+    public static <X, Y, Z> F<X, Z> curry2(BiFunc<X, Y, Z> bi, Y y) {
+        return new F<>(x -> bi.apply(x, y));
+    }
+
+    public static <X, Y> Func<X, Target<Y>> trg_curried1(BiTarget<X, Y> bi) {
+        return x -> y -> bi.accept(x, y);
+    }
+
+    public static <X, Y> Func<Y, Target<X>> trg_curried2(BiTarget<X, Y> bi) {
+        return y -> x -> bi.accept(x, y);
+    }
+
+    public static <X, Y> Target<X> trg_curry1(BiTarget<X, Y> bi, Y y) {
+        return x -> bi.accept(x, y);
+    }
+
+    public static <X, Y> Target<Y> trg_curry2(BiTarget<X, Y> bi, X x) {
+        return y -> bi.accept(x, y);
+    }
+
+    public static <X, Y> Func<X, Y> fixed(Y y) {
+        return x -> y;
+    }
+
+    private static final Func SELF = x -> x;
+
+    @SuppressWarnings("unchecked")
+    public static <X> Func<X, X> self() {
+        return SELF;
     }
 }
