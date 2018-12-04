@@ -10,6 +10,7 @@ import org.jimkast.jkell.func.FnReduced;
 import org.jimkast.jkell.func.FnSelf;
 import org.jimkast.jkell.source.SrcEmpty;
 import org.jimkast.jkell.source.SrcFallback;
+import org.jimkast.jkell.source.SrcFixed;
 import org.jimkast.jkell.source.SrcForEach;
 import org.jimkast.jkell.source.SrcMapped;
 import org.jimkast.jkell.types.BiFunc;
@@ -49,11 +50,11 @@ public final class F<X, Y> implements Func<X, Y> {
         return new PsComposer<>(origin, next);
     }
 
-    public <Z> PsComposer<X, Y, Z> fork(Func<Y, Boolean> check, Func<Y, Z> result) {
+    public <Z> PsComposer<X, Y, Z> thenif(Func<Y, Boolean> check, Func<Y, Z> result) {
         return fork(new FnCase<>(check, result));
     }
 
-    public <Z> PsComposer<X, Y, Z> fork(Func<Y, Boolean> check, Z result) {
+    public <Z> PsComposer<X, Y, Z> thenif(Func<Y, Boolean> check, Z result) {
         return fork(new FnCase<>(check, result));
     }
 
@@ -76,7 +77,7 @@ public final class F<X, Y> implements Func<X, Y> {
             return new PsComposer<>(before, new FnMapped<>(origin, new FnCurried1<>(SrcMapped::new, next)));
         }
 
-        public <Z> PsComposer<A, X, Z> pipeNested(Func<Y, Source<Z>> next) {
+        public <Z> PsComposer<A, X, Z> thenif(Func<Y, Source<Z>> next) {
             return new PsComposer<>(before, new FnMapped<>(origin, src -> src.feed(next, SrcEmpty.instance())));
         }
 
@@ -104,11 +105,11 @@ public final class F<X, Y> implements Func<X, Y> {
         }
 
 
-        public PsComposer<A, X, Y> fork(Func<X, Boolean> check, Func<X, Y> result) {
+        public PsComposer<A, X, Y> elseif(Func<X, Boolean> check, Func<X, Y> result) {
             return fork(new FnCase<>(check, result));
         }
 
-        public PsComposer<A, X, Y> fork(Func<X, Boolean> check, Y result) {
+        public PsComposer<A, X, Y> elseif(Func<X, Boolean> check, Y result) {
             return fork(new FnCase<>(check, result));
         }
 
@@ -169,6 +170,16 @@ public final class F<X, Y> implements Func<X, Y> {
 
     public static <X, Y> Func<X, Y> fixed(Y y) {
         return x -> y;
+    }
+
+    public static <X, Y> PsComposer<X, X, Y> tryy(Func<X, Y> f) {
+        return new PsComposer<>(FnSelf.instance(), x -> {
+            try {
+                return new SrcFixed<>(f.apply(x));
+            } catch (Exception e) {
+                return SrcEmpty.instance();
+            }
+        });
     }
 
     private static final Func SELF = x -> x;

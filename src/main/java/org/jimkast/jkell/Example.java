@@ -19,8 +19,8 @@ public final class Example {
             .<Integer, Integer>wrap(i -> i * 3)
             .then(i -> i + 1)
             .then(i -> i * 2)
-            .fork(i -> i < 30, 30)
-            .fork(i -> i < 50, 50)
+            .thenif(i -> i < 30, 30)
+            .elseif(i -> i < 50, 50)
             .orelse(100)
             .bi((i, result) -> i + ": " + result)
             .reduce(System.out::println);
@@ -29,12 +29,12 @@ public final class Example {
             .<InputStream, Reader>wrap(InputStreamReader::new)
             .then(BufferedReader::new)
             .then(BufferedReader::readLine)
-            .fork("bo"::equals, XdmValue.makeValue("SUPERADMIN"))
-            .fork(
+            .thenif("bo"::equals, XdmValue.makeValue("SUPERADMIN"))
+            .elseif(
                 "bo"::startsWith,
                 F.curry1(Ops.CONCAT, "BOUSER:").then(XdmValue::makeValue)
             )
-            .fork(
+            .elseif(
                 "ag"::startsWith,
                 F.curry1(Ops.CONCAT, "AGENT:").then(XdmValue::makeValue)
             )
